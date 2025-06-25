@@ -1,0 +1,88 @@
+{
+  "name": "Advanced Voice Command Handler",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "voice-command",
+        "responseMode": "responseNode"
+      },
+      "name": "Voice Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.command.toLowerCase() }}",
+              "operation": "contains",
+              "value2": "อากาศ"
+            }
+          ]
+        }
+      },
+      "name": "Check Weather Command",
+      "type": "n8n-nodes-base.if",
+      "position": [460, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.command.toLowerCase() }}",
+              "operation": "contains",
+              "value2": "เวลา"
+            }
+          ]
+        }
+      },
+      "name": "Check Time Command",
+      "type": "n8n-nodes-base.if",
+      "position": [460, 400]
+    },
+    {
+      "parameters": {
+        "url": "http://api.openweathermap.org/data/2.5/weather",
+        "qs": {
+          "q": "Bangkok",
+          "appid": "YOUR_API_KEY",
+          "units": "metric",
+          "lang": "th"
+        }
+      },
+      "name": "Get Weather",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [680, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"message\": \"ตอนนี้เวลา {{ $now.format('HH:mm') }} น. วันที่ {{ $now.format('DD/MM/YYYY') }}\",\n  \"timestamp\": \"{{ $now }}\"\n}"
+      },
+      "name": "Respond Time",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [680, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"message\": \"อากาศในกรุงเทพฯ ตอนนี้ {{ $json.main.temp }} องศา {{ $json.weather[0].description }}\",\n  \"temperature\": \"{{ $json.main.temp }}\",\n  \"description\": \"{{ $json.weather[0].description }}\"\n}"
+      },
+      "name": "Respond Weather",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"message\": \"ขออภัยครับ ยังไม่เข้าใจคำสั่ง: {{ $json.command }}\",\n  \"suggestion\": \"ลองพูดว่า 'อากาศวันนี้เป็นยังไง' หรือ 'ตอนนี้กี่โมงแล้ว'\"\n}"
+      },
+      "name": "Default Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "position": [680, 600]
+    }
+  ]
+}

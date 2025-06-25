@@ -1,0 +1,89 @@
+{
+  "name": "Voice Command Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "voice-command",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-node",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.command }}",
+              "operation": "contains",
+              "value2": "สวัสดี"
+            }
+          ]
+        }
+      },
+      "id": "if-node",
+      "name": "Check Command",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"message\": \"สวัสดีครับ! มีอะไรให้ช่วยไหม\",\n  \"command_received\": \"{{ $json.command }}\",\n  \"timestamp\": \"{{ $now }}\"\n}"
+      },
+      "id": "respond-greeting",
+      "name": "Respond Greeting",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "{\n  \"message\": \"ได้รับคำสั่ง: {{ $json.command }} แล้วครับ\",\n  \"command_received\": \"{{ $json.command }}\",\n  \"timestamp\": \"{{ $now }}\",\n  \"status\": \"processed\"\n}"
+      },
+      "id": "respond-default",
+      "name": "Respond Default",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [680, 400]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Check Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Command": {
+      "main": [
+        [
+          {
+            "node": "Respond Greeting",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Default",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
